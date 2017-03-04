@@ -14,9 +14,9 @@ public class ServerPlayerData {
         this.player = ent;
     }
     
-    public void startNextTurn(ServerWorld world) {
+    public void updateWorld(ServerWorld world, boolean turn) {
         try {
-            thread.doUpdate(player.currentSquare.room);
+            thread.doUpdate(player.currentSquare.room, turn);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -12,8 +12,10 @@ import stacs.server.ServerWorld;
 public abstract class Entity implements Serializable {
     private static final long serialVersionUID = 8882148407207576417L;
 
+    private static int ID = 0;
+    public final int id = ID++;
     public Square currentSquare;
-    public Square lastSquare;
+    public boolean interpolate = true;
 
     public String getDisplayName() {
         return null;
@@ -27,12 +29,12 @@ public abstract class Entity implements Serializable {
         return null;
     }
 
-    public double getInterpolatedY(double prog, double scale, double transy) {
+    public double getInterpolatedY(double prog, double scale, double transy, Square lastSquare) {
         int yy = DrawingUtils.transformY(currentSquare.x, 1 - currentSquare.getH(), currentSquare.y, scale, transy);
 
         int ly = yy;
 
-        if (lastSquare != null) {
+        if (lastSquare != null && interpolate) {
             double hh2 = lastSquare.getH();
             ly = DrawingUtils.transformY(lastSquare.x, 1 - hh2, lastSquare.y, scale, transy);
         }
@@ -44,12 +46,12 @@ public abstract class Entity implements Serializable {
 
     }
 
-    public double getInterpolatedX(double prog, double scale, double transx) {
+    public double getInterpolatedX(double prog, double scale, double transx, Square lastSquare) {
         int xx = DrawingUtils.transformX(currentSquare.x, 1 - currentSquare.getH(), currentSquare.y, scale, transx);
 
         int lx = xx;
 
-        if (lastSquare != null) {
+        if (lastSquare != null && interpolate) {
             double hh2 = lastSquare.getH();
             lx = DrawingUtils.transformX(lastSquare.x, 1 - hh2, lastSquare.y, scale, transx);
         }

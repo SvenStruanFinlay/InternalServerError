@@ -19,14 +19,12 @@ public class MoveAction extends NextTurnAction {
     
     @Override
     public void execute(Entity e, ServerWorld world) {
-       e.lastSquare = e.currentSquare;
        e.currentSquare.entities.remove(e);
        
        Square n = world.roomMap.get(rm).squares[x][y]; 
        n.entities.add(e);
        e.currentSquare = n;
-       if(teleport)
-           e.lastSquare = null;
+       e.interpolate = !teleport;
        
        System.out.println(n);
     }

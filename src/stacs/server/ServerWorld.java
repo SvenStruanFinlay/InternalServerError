@@ -31,7 +31,32 @@ public class ServerWorld {
         toGetTurnEntities.clear();
         toGetTurnEntities.addAll(allEntities);
     }
+    
+    private void update() {
+        for(Entity e: allEntities) {
+            if(e instanceof PlayerEntity) {
+                PlayerEntity player = (PlayerEntity) e;
+                player.serverData.updateWorld(this, false);
+            }
+        }
+    }
 
+    public synchronized void runCommand(String command){
+        if(command.equals("rain")){
+            for(Room room : roomMap.values()){
+                room.rain = true;
+            }
+            update();
+        }
+        
+        if(command.equals("thaw")){
+            for(Room room : roomMap.values()){
+                room.rain = false;
+            }
+            update();
+        }
+    }
+    
     public synchronized void attemptTurn() {
         if (!turnStarted)
             startTurn();
@@ -59,6 +84,7 @@ public class ServerWorld {
         Square s = rm.squares[x][y]; 
         s.entities.add(e);
         e.currentSquare = s;
+        update();
     }
 
     public void runServerLoop() {

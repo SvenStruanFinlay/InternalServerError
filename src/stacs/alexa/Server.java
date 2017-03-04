@@ -15,7 +15,16 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import stacs.server.ServerWorld;
+
 public class Server implements Runnable {
+    
+    private ServerWorld world;
+    
+    public Server(ServerWorld world){
+        this.world = world;
+    }
+    
     public void run() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8060), 0);
@@ -29,7 +38,8 @@ public class Server implements Runnable {
                         JSONObject object = new JSONObject(line);
                         String intent = object.getJSONObject("request").getJSONObject("intent").getString("name");
                         System.out.println("GOT MESSAGE " + intent);
-                        response = "OK.";
+                        world.runCommand(intent);
+                        response = "Yes my lord.";
                     } catch (Exception e) {
                         System.out.println("PARSING ERROR");
                         e.printStackTrace();
@@ -39,7 +49,6 @@ public class Server implements Runnable {
                     t.getResponseHeaders().put("Content-Type", Arrays.asList("text/plain"));
                     t.sendResponseHeaders(200, 0);
                     String msg = "{ \"version\": \"1.0\", \"response\": { \"outputSpeech\": { \"type\": \"PlainText\", \"text\": \"" + response + "\" }, \"shouldEndSession\": true } }\r\n";
-                    System.out.println(msg);
                     writer.write(msg);
                     writer.flush();
                     t.getResponseBody().flush();

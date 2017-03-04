@@ -15,10 +15,16 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferStrategy;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+
+import com.sun.xml.internal.ws.api.ha.HaInfo;
 
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.PlayerEntity;
@@ -32,8 +38,14 @@ public class ClientMain extends Canvas {
 
     private BufferStrategy buffers = null;
     private Room room = null;
+    private Room lastRoom = null;
+    
+    
     private int tick = 0;
 
+    private Map<Integer, Square> lastPositionMap = new HashMap<>();
+    private Map<Integer, Square> currentPositionMap = new HashMap<>();
+    
     private double animProgress = 1;
     private double inProg = 0;
     private String msg = null;
@@ -50,18 +62,29 @@ public class ClientMain extends Canvas {
     private double scale = 100;
     private double transx = 500;
     private double transy = 100;
+    
+    
 
     TcpClient client;
 
-    public synchronized void updateRoom(Room room, PlayerEntity p) {
+    public synchronized void updateRoom(Room room, PlayerEntity p, boolean update) {
         if(this.room == null || this.room.id != room.id){
             inProg = 0;
         }
+        
+        Map<Integer, Square> temp = lastPositionMap;
+        lastPositionMap = currentPositionMap;
+        currentPositionMap = temp;
+        temp.clear();
+        
+        lastRoom = this.room;
         this.room = room;
         this.myPlayer = p;
         animProgress = 0;
         msg = null;
-        needsTurn = true;
+        
+        if(update)
+            needsTurn = true;
     }
 
     public ClientMain() {
@@ -95,10 +118,10 @@ public class ClientMain extends Canvas {
                     int dx = myPlayer.currentSquare.x - highlight.x;
                     int dy = myPlayer.currentSquare.y - highlight.y;
 
-                    if (Math.abs(dx) + Math.abs(dy) > 1) {
-                        msg = "cannot move there";
-                        break turn;
-                    }
+//                    if (Math.abs(dx) + Math.abs(dy) > 1) {
+//                        msg = "cannot move there";
+//                        break turn;
+//                    }
 
                     
                     boolean teleport = false;
@@ -194,8 +217,8 @@ public class ClientMain extends Canvas {
         
         double inProg = this.inProg * this.inProg * 3 - 2 * this.inProg  * this.inProg  *this.inProg;
         
-        transx -= (myPlayer.getInterpolatedX(animProgress, scale, transx) - getWidth() / 2);
-        transy -= (myPlayer.getInterpolatedY(animProgress, scale, transy) - getHeight() / 2);
+        transx -= (myPlayer.getInterpolatedX(animProgress, scale, transx, lastPositionMap.get(myPlayer.id)) - getWidth() / 2);
+        transy -= (myPlayer.getInterpolatedY(animProgress, scale, transy, lastPositionMap.get(myPlayer.id)) - getHeight() / 2);
         if (animProgress < 1)
             animProgress += 1.0 / 60;
         double animProgress = this.animProgress *this.animProgress * 3 - 2 * this.animProgress * this.animProgress *this.animProgress;
@@ -206,14 +229,13 @@ public class ClientMain extends Canvas {
         int w = getWidth();
         int h = getHeight();
 
-        g.setColor(Color.black);
+        if(room.rain)
+            g.setColor(Color.blue);
+        else
+            g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
 
-        g.setColor(Color.white);
-        String msg = this.msg;
-        if (msg == null)
-            msg = needsTurn ? "Make your move" : "waiting on others";
-        g.drawString(msg, 100, 100);
+ 
 
         Square lasthl = highlight;
 
@@ -272,11 +294,13 @@ public class ClientMain extends Canvas {
                 }
 
                 for (Entity e : s.entities) {
+                    currentPositionMap.put(e.id, e.currentSquare);
+                    Square last = lastPositionMap.get(e.id);
                     Image img = e.getSprite(tick);
                     if (img != null) {
 
-                        int xx = (int) e.getInterpolatedX(animProgress, scale, transx);
-                        int yy = (int) e.getInterpolatedY(animProgress, scale, transy);
+                        int xx = (int) e.getInterpolatedX(animProgress, scale, transx, last);
+                        int yy = (int) e.getInterpolatedY(animProgress, scale, transy, last);
 
                         g.drawImage(img, xx, yy + (int) (dhy  * scale), null);
                         g.setColor(Color.white);
@@ -289,6 +313,11 @@ public class ClientMain extends Canvas {
             depth++;
         }
 
+        g.setColor(Color.white);
+        String msg = this.msg;
+        if (msg == null)
+            msg = needsTurn ? "Make your move" : "waiting on others";
+        g.drawString(msg, 100, 100);
         buffers.show();
     }
 

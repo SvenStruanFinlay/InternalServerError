@@ -15,7 +15,7 @@ public class ServerMain {
     
     public void run() {
         RoomGen.generateWorld(world);
-        new Thread(new Server()).start();
+        new Thread(new Server(world)).start();
         new TcpServer(world).start();
         world.runServerLoop();
     }

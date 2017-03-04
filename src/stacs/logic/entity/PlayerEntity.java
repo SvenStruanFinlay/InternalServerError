@@ -26,7 +26,7 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void startNextTurn(ServerWorld world) {
-        serverData.startNextTurn(world);
+        serverData.updateWorld(world, true);
     }
 
     

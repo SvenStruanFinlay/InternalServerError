@@ -9,15 +9,17 @@ public class UpdateRoomMessage extends Message {
     
     private Room room;
     private PlayerEntity player;
+    private boolean requestTurns;
     
-    public UpdateRoomMessage(Room room, PlayerEntity ent) {
+    public UpdateRoomMessage(Room room, PlayerEntity ent, boolean requestTurns) {
         this.room = room;
+        this.requestTurns = requestTurns;
         this.player = ent;
     }
 
     @Override
     public void clientRecieved(TcpClient tcpClient) {
-        tcpClient.main.updateRoom(room, player);
+        tcpClient.main.updateRoom(room, player, requestTurns);
     }
     
 }
