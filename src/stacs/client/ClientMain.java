@@ -5,14 +5,16 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 
 import javax.swing.JFrame;
 
-import com.sun.org.apache.xalan.internal.xsltc.dom.UnionIterator;
-
+import stacs.main.Entity;
 import stacs.main.Room;
 import stacs.main.Square;
 
@@ -20,8 +22,34 @@ public class ClientMain extends Canvas {
 
     private BufferStrategy buffers = null;
     private Room room = RoomGen.generateRoom();
+    private int tick =0;
+    
+    private int mx;
+    private int my;
+    
+    private Square highlight = null;
+    
+    private double scale = 50;
+    private double transx = 500;
+    private double transy = 100;
 
     public ClientMain() {
+        
+        this.addMouseMotionListener(new MouseMotionListener() {
+            
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                mx = e.getX();
+                my = e.getY();
+            }
+            
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                mx = e.getX();
+                my = e.getY();
+            }
+        });
+        
         this.setPreferredSize(new Dimension(1080, 720));
 
         JFrame window = new JFrame("Game");
@@ -45,14 +73,12 @@ public class ClientMain extends Canvas {
         /* Ignore system painting */
     }
 
-    public void drawQuad(double x1, double y1, double z1,
-                           double x2, double y2, double z2,
-                           double x3, double y3, double z3,
-                           double x4, double y4, double z4,
-                           Graphics2D g, Color col) {
-        double scale = 50;
-        double transx = 500;
-        double transy = 100;
+    public boolean drawQuad(double x1, double y1, double z1,
+                              double x2, double y2, double z2,
+                              double x3, double y3, double z3,
+                              double x4, double y4, double z4,
+                              Graphics2D g, Color col, int mx, int my) {
+
 
         int[] x = {
                 DrawingUtils.transformX(x1, y1, z1, scale, transx),
@@ -65,41 +91,45 @@ public class ClientMain extends Canvas {
                 DrawingUtils.transformY(x3, y3, z3, scale, transy),
                 DrawingUtils.transformY(x4, y4, z4, scale, transy) };
 
+        Polygon p = new Polygon(x, y, x.length);
         g.setColor(col);
-        g.fillPolygon(x, y, x.length);
+        g.fillPolygon(p);
+        return p.contains(mx, my);
     }
     
-    public void drawFace(double x,  double y,  double z,
-                           double dx, double dy, double dz,
-                           Graphics2D g, Color col){
+    public boolean drawFace(double x,  double y,  double z,
+                              double dx, double dy, double dz,
+                              Graphics2D g, Color col, int mx, int my){
         if(dy == 0){
-        drawQuad(x, y, z,
+        return drawQuad(x, y, z,
                 x + dx, y, z,
                 x + dx, y, z + dz,
                 x, y, z + dz,
-                g, col);
+                g, col, mx, my);
         } else {
-            drawQuad(x, y, z,
+            return drawQuad(x, y, z,
                 x, y + dy, z,
                 x + dx, y + dy, z + dz,
                 x + dx, y, z + dz,
-                g, col);
+                g, col, mx, my);
         }
     }
     
-    public void drawCube(double x, double y, double z, double w, double h, double d, Graphics2D g, Color col){
-                                       drawFace(x + w, y + h, z + d,-w,-h,0, g, col.darker().darker());
-                                       drawFace(x + w, y + h, z + d,0,-h,-d, g, col.darker());
-                                       drawFace(x,y,z,w,0,d, g, col);
+    public boolean drawCube(double x, double y, double z, double w, double h, double d, Graphics2D g, Color col, int mx, int my){
+        return 
+                                       drawFace(x + w, y + h, z + d,-w,-h,0, g, col.darker().darker(), mx, my) | 
+                                       drawFace(x + w, y + h, z + d,0,-h,-d, g, col.darker(), mx, my) |
+                                       drawFace(x,y,z,w,0,d, g, col, mx, my);
     }
-
+    
     public void render() {
+        tick++;
         Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
 
         int w = getWidth();
         int h = getHeight();
 
-        g.setColor(Color.white);
+        g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
         
         int depth = 0;
@@ -111,9 +141,28 @@ public class ClientMain extends Canvas {
             
             Square s = room.squares[x][y];
             double hh = 1.0 * s.height / 10;
-            drawCube(x, 1 - hh, y, 1, hh, 1, g, s.terrainType.c);
+            if(drawCube(x, 1 - hh, y, 1, hh, 1, g, s.terrainType.c, mx, my)) {
+                highlight = s;
+            }
+            
+            
+            for(Entity e : s.entities){
+                Image img = e.getSprite(tick);
+                if(img != null){
+                    int xx = DrawingUtils.transformX(x, 1 - hh, y, scale, transx);
+                    int yy = DrawingUtils.transformY(x, 1 - hh, y, scale, transy);
+                    
+                    g.drawImage(img, xx, yy, null);
+                }
+            }
         }
         depth++;
+        }
+        
+        if(highlight != null){
+            double hh = 1.0 * highlight.height / 10;
+            Color high = new Color(255, 0, 0, 100);
+            drawCube(highlight.x, 1 - hh, highlight.y, 1, hh, 1, g, high, mx, my);
         }
 
         buffers.show();
