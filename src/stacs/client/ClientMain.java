@@ -202,8 +202,6 @@ public class ClientMain extends Canvas {
 
         tick++;
         Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
-        // g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-        // RenderingHints.VALUE_ANTIALIAS_ON);
 
         int w = getWidth();
         int h = getHeight();
