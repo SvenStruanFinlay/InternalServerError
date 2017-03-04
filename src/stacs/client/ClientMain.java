@@ -169,11 +169,18 @@ public class ClientMain extends Canvas {
     }
 
     public void run() {
+        int frametimeMs = 1000 / 60;
+        
+        
         while (true) {
-
+            long lastFrameTime = System.currentTimeMillis();
+            
             render();
             try {
-                Thread.sleep(200);
+                long slp = lastFrameTime + frametimeMs - System.currentTimeMillis();
+                if(slp > 0) {
+                    Thread.sleep(slp);
+                }
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
