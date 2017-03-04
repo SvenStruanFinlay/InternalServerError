@@ -160,9 +160,6 @@ public class ClientMain extends Canvas {
                 double dx = 1;
                 double dy = 1;
                 
-                boolean door = true;
-                boolean open = true;
-                
                 if(x == 0){
                     dx = 0.2;
                 }else if(x == w){
@@ -174,7 +171,6 @@ public class ClientMain extends Canvas {
                     dy = 0.2;
                     yy += 1 - dy;
                 } else {
-                    door = false;
                     int tt = (tick % 200);
                     if(tt > 100)
                         tt = 200 - tt;

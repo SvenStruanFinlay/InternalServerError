@@ -1,10 +1,13 @@
 package stacs.main;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
-public class Room {
+public class Room implements Serializable {
+    private static final long serialVersionUID = 7837788358931915072L;
+    
     public final int id;
-    public final ServerWorld world;
+    public final transient ServerWorld world;
     public final int w;
     public final int h;
     public Square[][] squares;

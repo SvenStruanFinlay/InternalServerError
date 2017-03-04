@@ -1,9 +1,11 @@
 package stacs.main;
 
 import java.awt.Image;
+import java.io.Serializable;
 
-public abstract class Entity {
-
+public abstract class Entity implements Serializable {
+    private static final long serialVersionUID = 8882148407207576417L;
+    
     public Room currentRoom;
     public Square currentSquare;
     

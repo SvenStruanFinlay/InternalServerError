@@ -1,9 +1,11 @@
 package stacs.main;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Square {
+public class Square implements Serializable {
+    private static final long serialVersionUID = 8941433203101625178L;
     
     public final int x;
     public final int y;
