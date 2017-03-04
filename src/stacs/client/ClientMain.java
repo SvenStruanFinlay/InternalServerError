@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -125,12 +126,15 @@ public class ClientMain extends Canvas {
     public void render() {
         tick++;
         Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
+        //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int w = getWidth();
         int h = getHeight();
 
         g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
+        
+        Square lasthl = highlight;
         
         int depth = 0;
         while(depth <= room.w + room.h - 2){
@@ -141,14 +145,54 @@ public class ClientMain extends Canvas {
             
             Square s = room.squares[x][y];
             double hh = 1.0 * s.height / 10;
+            hh /= 1.5;
             if(drawCube(x, 1 - hh, y, 1, hh, 1, g, s.terrainType.c, mx, my)) {
                 highlight = s;
             }
+
+            if(s.teleport != null){
+                double dh = 2;
+                Color doorCol = Color.orange;
+                
+                double xx = x;
+                double yy = y;
+                
+                double dx = 1;
+                double dy = 1;
+                
+                boolean door = true;
+                boolean open = true;
+                
+                if(x == 0){
+                    dx = 0.2;
+                }else if(x == w){
+                    dx = 0.2;
+                    xx += 1 - dx;
+                } else if(y == 0){
+                    dy = 0.2;
+                } else if (y == h){
+                    dy = 0.2;
+                    yy += 1 - dy;
+                } else {
+                    door = false;
+                    int tt = (tick % 200);
+                    if(tt > 100)
+                        tt = 200 - tt;
+                    doorCol = new Color(0, 255, 0, tt );
+                }
+                
+                drawCube(xx, 1 - hh - dh, yy, dx, dh, dy, g, doorCol, -1, -1);
+            }
             
+            if(lasthl == s){
+                Color high = new Color(255, 0, 0, 100);
+                drawCube(x, 1 - hh, y, 1, hh, 1, g, high, -1, -1);    
+            }
             
             for(Entity e : s.entities){
                 Image img = e.getSprite(tick);
                 if(img != null){
+                    
                     int xx = DrawingUtils.transformX(x, 1 - hh, y, scale, transx);
                     int yy = DrawingUtils.transformY(x, 1 - hh, y, scale, transy);
                     
@@ -159,11 +203,6 @@ public class ClientMain extends Canvas {
         depth++;
         }
         
-        if(highlight != null){
-            double hh = 1.0 * highlight.height / 10;
-            Color high = new Color(255, 0, 0, 100);
-            drawCube(highlight.x, 1 - hh, highlight.y, 1, hh, 1, g, high, mx, my);
-        }
 
         buffers.show();
     }

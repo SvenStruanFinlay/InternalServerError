@@ -17,11 +17,14 @@ public class RoomGen {
             for(int y = 0; y < 10; y++){ 
                 room.squares[x][y] = new Square(x, y, rand.nextInt(10) + 1, rand.nextBoolean() ? TerrainType.dirt : TerrainType.stone, room);
                 
-                if(x == 3 && y == 2) {
+                if(x == 9 && y == 3) {
                     room.squares[x][y].entities.add(new PlayerEntity());
                 }
             }
         }
+        
+        room.squares[0][1].teleport = room.squares[2][3];
+        room.squares[4][5].teleport = room.squares[2][3];
         
         return room;
     }
