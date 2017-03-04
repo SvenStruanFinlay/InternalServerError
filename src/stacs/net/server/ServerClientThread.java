@@ -29,7 +29,7 @@ public class ServerClientThread implements Runnable {
 
     public void doUpdate(Room room) throws IOException {
         os.reset();
-        os.writeObject(new UpdateRoomMessage(room));
+        os.writeObject(new UpdateRoomMessage(room, player));
         os.flush();
     }
     

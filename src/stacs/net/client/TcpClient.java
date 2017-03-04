@@ -24,6 +24,14 @@ public class TcpClient extends Thread {
         this.main = main;
     }
     
+    public void joinGame(String name){
+        try {
+            os.writeObject(new JoinMessage(name));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     public void sendAction(NextTurnAction action){
         try {
             os.reset();
@@ -40,8 +48,6 @@ public class TcpClient extends Thread {
             sock = new Socket("localhost", 8055);
             os = new ObjectOutputStream(sock.getOutputStream());
             is = new ObjectInputStream(sock.getInputStream());
-            
-            os.writeObject(new JoinMessage("player1"));
             
             while(true){
                 Object obj = is.readObject();

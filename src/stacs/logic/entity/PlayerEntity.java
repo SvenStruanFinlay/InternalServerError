@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import stacs.logic.room.Square;
 import stacs.server.ServerWorld;
 
 public class PlayerEntity extends LivingEntity {
@@ -28,6 +29,10 @@ public class PlayerEntity extends LivingEntity {
         serverData.startNextTurn(world);
     }
 
+    
+    public boolean canMove(Square s){
+        return true;
+    }
     
     private static final Image anim1[];
     

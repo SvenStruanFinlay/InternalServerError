@@ -22,6 +22,11 @@ public class Square implements Serializable {
     public final TerrainType terrainType;
     public final Room room;
     
+    public double getH() {
+        double hh = 1.0 * height / 10;
+        return hh / 1.5;
+    }
+    
     public Square(int x, int y, int height, TerrainType terrainType, Room room) {
         super();
         this.x = x;
