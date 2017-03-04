@@ -31,7 +31,7 @@ public class ServerWorld {
                 for (Entry<Entity, NextTurnAction> entry : nextActionMap.entrySet()) {
                     entry.getValue().execute(entry.getKey(), this);
                 }
-                
+                 
                 nextActionMap.clear();
                 turnStarted = false;
             }
