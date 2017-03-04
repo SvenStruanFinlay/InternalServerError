@@ -1,4 +1,4 @@
-package stacs.main;
+package stacs.logic.room;
 
 import java.awt.Color;
 

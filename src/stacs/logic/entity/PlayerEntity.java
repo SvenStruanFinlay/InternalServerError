@@ -1,9 +1,11 @@
-package stacs.main;
+package stacs.logic.entity;
 
 import java.awt.Image;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+
+import stacs.server.ServerWorld;
 
 public class PlayerEntity extends LivingEntity {
 

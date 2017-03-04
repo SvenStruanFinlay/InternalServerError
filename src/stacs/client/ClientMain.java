@@ -15,9 +15,10 @@ import java.awt.image.BufferStrategy;
 
 import javax.swing.JFrame;
 
-import stacs.main.Entity;
-import stacs.main.Room;
-import stacs.main.Square;
+import stacs.logic.entity.Entity;
+import stacs.logic.room.Room;
+import stacs.logic.room.Square;
+import stacs.test.RoomGen;
 
 public class ClientMain extends Canvas {
 

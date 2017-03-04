@@ -1,8 +1,11 @@
-package stacs.main;
+package stacs.logic.room;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import stacs.logic.entity.Entity;
+import stacs.logic.item.Item;
 
 public class Square implements Serializable {
     private static final long serialVersionUID = 8941433203101625178L;

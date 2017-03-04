@@ -1,11 +1,11 @@
-package stacs.client;
+package stacs.test;
 
 import java.util.Random;
 
-import stacs.main.PlayerEntity;
-import stacs.main.Room;
-import stacs.main.Square;
-import stacs.main.TerrainType;
+import stacs.logic.entity.PlayerEntity;
+import stacs.logic.room.Room;
+import stacs.logic.room.Square;
+import stacs.logic.room.TerrainType;
 
 public class RoomGen {
     public static Room generateRoom() {

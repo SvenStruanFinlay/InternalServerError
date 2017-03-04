@@ -1,4 +1,4 @@
-package stacs.main;
+package stacs.server;
 
 public class Main {
 

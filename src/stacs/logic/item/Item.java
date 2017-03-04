@@ -1,4 +1,4 @@
-package stacs.main;
+package stacs.logic.item;
 
 import java.io.Serializable;
 

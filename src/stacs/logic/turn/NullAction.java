@@ -1,4 +1,7 @@
-package stacs.main;
+package stacs.logic.turn;
+
+import stacs.logic.entity.Entity;
+import stacs.server.ServerWorld;
 
 public class NullAction extends NextTurnAction {
 

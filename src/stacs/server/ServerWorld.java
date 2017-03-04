@@ -1,10 +1,14 @@
-package stacs.main;
+package stacs.server;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import stacs.logic.entity.Entity;
+import stacs.logic.room.Room;
+import stacs.logic.turn.NextTurnAction;
 
 public class ServerWorld {
     public final Map<Integer, Room> roomMap = new HashMap<>();

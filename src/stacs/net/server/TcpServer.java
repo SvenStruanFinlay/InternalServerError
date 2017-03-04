@@ -5,9 +5,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import stacs.client.RoomGen;
-import stacs.main.Room;
+import stacs.logic.room.Room;
 import stacs.net.message.ChatMessage;
+import stacs.test.RoomGen;
 
 public class TcpServer extends Thread {
 
