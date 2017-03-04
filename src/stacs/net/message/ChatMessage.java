@@ -9,9 +9,4 @@ public class ChatMessage extends Message {
         this.msg = msg;
     }
     
-    
-    @Override
-    public void doThings() {
-         System.out.println("Got chat " + msg);
-    }
 }

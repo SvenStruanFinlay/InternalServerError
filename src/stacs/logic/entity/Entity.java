@@ -11,7 +11,6 @@ import stacs.server.ServerWorld;
 public abstract class Entity implements Serializable {
     private static final long serialVersionUID = 8882148407207576417L;
     
-    public Room currentRoom;
     public Square currentSquare;
     
     public String getDisplayName() {

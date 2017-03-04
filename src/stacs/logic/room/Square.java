@@ -18,7 +18,7 @@ public class Square implements Serializable {
     
     public Square teleport = null;
     
-    public final int height;
+    public int height;
     public final TerrainType terrainType;
     public final Room room;
     

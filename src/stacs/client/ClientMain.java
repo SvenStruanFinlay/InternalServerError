@@ -9,7 +9,9 @@ import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 
@@ -18,24 +20,40 @@ import javax.swing.JFrame;
 import stacs.logic.entity.Entity;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
+import stacs.logic.turn.MoveAction;
+import stacs.net.client.TcpClient;
 import stacs.test.RoomGen;
 
 public class ClientMain extends Canvas {
 
     private BufferStrategy buffers = null;
-    private Room room = RoomGen.generateRoom();
-    private int tick =0;
+    private Room room = null;
+    private int tick = 0;
     
     private int mx;
     private int my;
+    
+    private boolean needsTurn = false;
+    
     
     private Square highlight = null;
     
     private double scale = 50;
     private double transx = 500;
     private double transy = 100;
-
+    
+    TcpClient client;
+    
+    public synchronized void updateRoom(Room room){
+        this.room = room;
+        
+        needsTurn = true;
+    }
+    
     public ClientMain() {
+        
+        client = new TcpClient(this);
+        client.start();
         
         this.addMouseMotionListener(new MouseMotionListener() {
             
@@ -50,6 +68,21 @@ public class ClientMain extends Canvas {
                 mx = e.getX();
                 my = e.getY();
             }
+        });
+        
+        this.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(needsTurn){
+                    
+                    MoveAction act = new MoveAction(highlight.room.id, highlight.x, highlight.y);
+                    client.sendAction(act);
+                    
+                    needsTurn = false;
+                }
+            }
+            
         });
         
         this.setPreferredSize(new Dimension(1080, 720));
@@ -124,7 +157,10 @@ public class ClientMain extends Canvas {
                                        drawFace(x,y,z,w,0,d, g, col, mx, my);
     }
     
-    public void render() {
+    public synchronized void render() {
+        if(room == null)
+            return;
+        
         tick++;
         Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
         //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

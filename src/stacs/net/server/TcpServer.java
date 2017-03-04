@@ -7,38 +7,28 @@ import java.net.Socket;
 
 import stacs.logic.room.Room;
 import stacs.net.message.ChatMessage;
+import stacs.server.ServerWorld;
 import stacs.test.RoomGen;
 
 public class TcpServer extends Thread {
 
-    Room rm = RoomGen.generateRoom();
-    boolean running = true;
-
+    public final ServerWorld world;
+    
+    public TcpServer(ServerWorld world) {
+        this.world = world;
+    }
+    
     @Override
     public void run() {
         try {
             ServerSocket ss = new ServerSocket(8055);
 
-            while (running) {
+            while (true) {
                 final Socket clientSocket = ss.accept();
-                new Thread(() -> {
-                    ObjectOutputStream os  = null;
-                    try{ 
-                        os = new ObjectOutputStream(clientSocket.getOutputStream());
-                        os.writeObject(new ChatMessage("hello there"));
-                        os.close();
-                        clientSocket.close();
-                    } catch(IOException e){
-                        e.printStackTrace();
-                    } 
-                }).start();
+                new Thread(new ServerClientThread(clientSocket, this)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        new TcpServer().start();
     }
 }

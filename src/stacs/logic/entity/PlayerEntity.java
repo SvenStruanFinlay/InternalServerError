@@ -8,10 +8,24 @@ import javax.imageio.ImageIO;
 import stacs.server.ServerWorld;
 
 public class PlayerEntity extends LivingEntity {
+    private static final long serialVersionUID = -3637404852314186918L;
+    
+    public transient ServerPlayerData serverData;
+
+    private String name;
+    
+    public PlayerEntity(String name) {
+        this.name = name;
+    }
+    
+    @Override
+    public String getDisplayName() {
+        return name;
+    }
 
     @Override
     public void startNextTurn(ServerWorld world) {
-        //do socket communication
+        serverData.startNextTurn(world);
     }
 
     
