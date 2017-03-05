@@ -57,4 +57,10 @@ public class ServerClientThread implements Runnable {
         }
     }
 
+    public void sendMessage(ChatMessage message) throws IOException {
+        os.reset();
+        os.writeObject(message);
+        os.flush();
+    }
+
 }

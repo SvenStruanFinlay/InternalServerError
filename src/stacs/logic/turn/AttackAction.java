@@ -1,7 +1,11 @@
 package stacs.logic.turn;
 
+import java.util.Random;
+
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.LivingEntity;
+import stacs.logic.entity.PlayerEntity;
+import stacs.net.message.ChatMessage;
 import stacs.server.ServerWorld;
 
 public class AttackAction extends NextTurnAction {
@@ -21,12 +25,17 @@ public class AttackAction extends NextTurnAction {
     
     @Override
     public void execute(Entity e, ServerWorld world) {
+        Random rand = new Random();
         Entity a = world.allEntities.get(toAttackId);
+        PlayerEntity p = (PlayerEntity) e;
         
         if(rm == a.currentSquare.room.id && x == a.currentSquare.x && y == a.currentSquare.y){
             if(a instanceof LivingEntity){
                 LivingEntity liv = (LivingEntity) a;
-                liv.hurt(1);
+                int damage = rand.nextInt(p.getAttachStrength()) + 1;
+                liv.hurt(damage);
+                
+                world.sendMessage(new ChatMessage(p.getDisplayName() + " attacks " + a.getDisplayName() + " (" + damage +"hp)"));
             }
         }
     }

@@ -9,6 +9,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MoveAction;
 
 import stacs.client.ClientMain;
 import stacs.logic.turn.NextTurnAction;
+import stacs.net.message.ChatMessage;
 import stacs.net.message.JoinMessage;
 import stacs.net.message.Message;
 import stacs.net.message.NextActionMessage;
@@ -58,6 +59,15 @@ public class TcpClient extends Thread {
             
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void sendChat(ChatMessage chatMessage) {
+        try {
+            os.reset();
+            os.writeObject(chatMessage);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

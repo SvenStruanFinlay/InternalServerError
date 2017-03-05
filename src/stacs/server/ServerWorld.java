@@ -7,13 +7,12 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
-
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.PlayerEntity;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
 import stacs.logic.turn.NextTurnAction;
+import stacs.net.message.ChatMessage;
 
 public class ServerWorld {
     public final Map<Integer, Room> roomMap = new HashMap<>();
@@ -23,7 +22,7 @@ public class ServerWorld {
     public HashSet<Entity> toGetTurnEntities = new HashSet<>();
 
     public boolean turnStarted = false;
-
+    
     public synchronized void startTurn() {
         for (Entity entry : allEntities.values()) {
             entry.startNextTurn(this);
@@ -42,10 +41,19 @@ public class ServerWorld {
             }
         }
     }
+    
+    public synchronized void sendMessage(ChatMessage message) {
+        for (Entity e : allEntities.values()) {
+            if (e instanceof PlayerEntity) {
+                PlayerEntity player = (PlayerEntity) e;
+                player.serverData.sendMessage(message);
+            }
+        }
+    }
 
     public synchronized void remove(Entity e) {
         e.currentSquare.entities.remove(e);
-        allEntities.remove(e);
+        allEntities.remove(e.id);
         toGetTurnEntities.remove(e);
         nextActionMap.remove(e);
     }
@@ -69,7 +77,7 @@ public class ServerWorld {
     public synchronized void attemptTurn() {
         if (!turnStarted)
             startTurn();
-
+        
         if (nextActionMap.keySet().containsAll(toGetTurnEntities)) {
             // ready to do next turn
 

@@ -1,5 +1,6 @@
 package stacs.client;
 
+import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,12 +18,17 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferStrategy;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import com.sun.xml.internal.ws.api.ha.HaInfo;
 import com.sun.xml.internal.ws.api.message.Attachment;
@@ -30,12 +36,17 @@ import com.sun.xml.internal.ws.api.message.Attachment;
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.LivingEntity;
 import stacs.logic.entity.PlayerEntity;
+import stacs.logic.item.Item;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
 import stacs.logic.turn.AttackAction;
 import stacs.logic.turn.MoveAction;
+import stacs.logic.turn.PickupItemAction;
 import stacs.net.client.TcpClient;
+import stacs.net.message.ChatMessage;
 import stacs.test.RoomGen;
+import stacs.util.PathFind;
+import sun.dc.pr.PathFiller;
 
 public class ClientMain extends Canvas {
 
@@ -55,10 +66,17 @@ public class ClientMain extends Canvas {
     private int mx;
     private int my;
 
+    private JTextArea area;
+    private JTextField chatIn;
+    
     private boolean needsTurn = false;
 
     private Square highlight = null;
     private Entity highlightEntity = null;
+    private Item highlightItem = null;
+    private Square highlightItemSquare = null;
+    
+    private List<Square> path = null;
 
     private PlayerEntity myPlayer;
 
@@ -67,6 +85,10 @@ public class ClientMain extends Canvas {
     private double transy = 100;
 
     TcpClient client;
+    
+    public void addMessage(String message){
+        area.append(message + "\n");
+    }
 
     public synchronized void updateRoom(Room room, PlayerEntity p, boolean update) {
         if (this.room == null || this.room.id != room.id) {
@@ -116,15 +138,7 @@ public class ClientMain extends Canvas {
             @Override
             public void mouseClicked(MouseEvent e) {
                 turn: if (needsTurn) {
-                    if (highlight != null) {
-                        // int dx = myPlayer.currentSquare.x - highlight.x;
-                        // int dy = myPlayer.currentSquare.y - highlight.y;
-
-                        // if (Math.abs(dx) + Math.abs(dy) > 1) {
-                        // msg = "cannot move there";
-                        // break turn;
-                        // }
-
+                    if (highlight != null && path != null) {
                         boolean teleport = false;
                         Square dest = highlight;
                         Square t = highlight.teleport;
@@ -141,10 +155,23 @@ public class ClientMain extends Canvas {
                         client.sendAction(act);
 
                         needsTurn = false;
-                    } else if (highlightEntity != null && highlightEntity != myPlayer){
+                    } else if (highlightEntity != null && highlightEntity != myPlayer) {
+                        int dist = Math.abs(myPlayer.currentSquare.x - highlightEntity.currentSquare.x);
+                        dist += Math.abs(myPlayer.currentSquare.y - highlightEntity.currentSquare.y);
+                        if(dist > 1)
+                            return;
+                        
                         AttackAction act = new AttackAction(highlightEntity);
                         client.sendAction(act);
-
+                        needsTurn = false;
+                    } else if(highlightItem != null) {
+                        int dist = Math.abs(myPlayer.currentSquare.x - highlightItemSquare.x);
+                        dist += Math.abs(myPlayer.currentSquare.y - highlightItemSquare.y);
+                        if(dist > 1)
+                            return;
+                            
+                        PickupItemAction pick = new PickupItemAction(highlightItemSquare, highlightItem);
+                        client.sendAction(pick);
                         needsTurn = false;
                     }
                 }
@@ -163,7 +190,26 @@ public class ClientMain extends Canvas {
         this.setPreferredSize(new Dimension(1080, 720));
 
         JFrame window = new JFrame("Game: " + n);
-        window.add(this);
+        
+        JPanel chatpane = new JPanel();
+        chatpane.setLayout(new BorderLayout());
+        area = new JTextArea();
+        area.setPreferredSize(new Dimension(0, 200));
+        chatpane.add(area, BorderLayout.CENTER);
+        chatIn = new JTextField();
+        chatIn.addActionListener(e -> {
+            client.sendChat(new ChatMessage(myPlayer.getDisplayName() + ": " + chatIn.getText()));
+            chatIn.setText("");
+        });
+        chatpane.add(chatIn, BorderLayout.SOUTH);
+        
+        
+        
+        JPanel pane = new JPanel();
+        pane.setLayout(new BorderLayout());
+        pane.add(this, BorderLayout.CENTER);
+        pane.add(chatpane, BorderLayout.SOUTH);
+        window.add(pane);
         window.pack();
         window.setVisible(true);
         window.setResizable(false);
@@ -175,11 +221,6 @@ public class ClientMain extends Canvas {
 
     @Override
     public void paint(Graphics g) {
-        /* Ignore system painting */
-    }
-
-    @Override
-    public void repaint() {
         /* Ignore system painting */
     }
 
@@ -248,6 +289,7 @@ public class ClientMain extends Canvas {
 
         Square lasthl = highlight;
         Entity lasthe = highlightEntity;
+        Item lasthi = highlightItem;
 
         Random rand = new Random();
         rand.setSeed(2);
@@ -266,6 +308,7 @@ public class ClientMain extends Canvas {
                 if (drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, s.terrainType.c, mx, my)) {
                     highlight = s;
                     highlightEntity = null;
+                    highlightItem = null;
                 }
 
                 if (s.teleport != null) {
@@ -298,10 +341,27 @@ public class ClientMain extends Canvas {
                     drawCube(xx, 1 - hh - dh + dhy, yy, dx, dh, dy, g, doorCol, -1, -1);
                 }
 
-                if (lasthl == s) {
+                if (lasthl == s && path == null) {
                     Color high = new Color(255, 0, 0, 100);
                     drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, high, -1, -1);
+                } else if (path != null && path.contains(s)) {
+                    Color high = new Color(0, 255, 0, 100);
+                    drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, high, -1, -1);
                 }
+            }
+            depth++;
+        }
+        
+        depth = 0;
+        while (depth <= room.w + room.h - 2) {
+            for (int x = Math.min(depth, room.w - 1); x >= 0; x--) {
+                int y = depth - x;
+                if (y >= room.h)
+                    break;
+
+                Square s = room.squares[x][y];
+                double hh = s.getH();
+                double dhy = -(10 + rand.nextInt(20)) * (1 - inProg);
 
                 for (Entity e : s.entities) {
                     currentPositionMap.put(e.id, e.currentSquare);
@@ -316,7 +376,7 @@ public class ClientMain extends Canvas {
                         int height = (int) (scale / .8);
                         int dx = (int) (scale / 1.5);
                         int dy = (int) (scale / 1.2);
-                        
+
                         int offset = (int) (scale / 1.2);
 
                         g.drawImage(img, xx - dx, yy + (int) (dhy * scale) - dy, width, height, null);
@@ -328,6 +388,7 @@ public class ClientMain extends Canvas {
                         if (mx > xx - dx && mx <= xx - dx + width && my > yy + (int) (dhy * scale) - dy
                                 && my <= yy + (int) (dhy * scale) - dy + height) {
                             highlightEntity = e;
+                            highlightItem = null;
                             highlight = null;
                         }
 
@@ -339,14 +400,52 @@ public class ClientMain extends Canvas {
 
                         if (e instanceof LivingEntity) {
                             LivingEntity liv = (LivingEntity) e;
-                            g.drawString(liv.health + "/" + liv.maxHealth, xx - 13, yy - offset - 5+ (int) (dhy * scale));
+                            g.drawString(liv.health + "/" + liv.maxHealth, xx - 13,
+                                    yy - offset - 5 + (int) (dhy * scale));
                         }
+                    }
+                }
+
+                for (Item e : s.items) {
+                    Image img = e.getImage();
+                    int xx = DrawingUtils.transformX(x, 1 - hh, y, scale, transx);
+                    int yy = DrawingUtils.transformY(x, 1 - hh, y, scale, transy);
+
+                    int width = (int) (scale / 2);
+                    int height = (int) (scale / 1.5);
+                    int dx = (int) (scale / 3.6);
+                    int dy = (int) (scale / 4);
+
+                    int offset = (int) (scale / 2.5);
+
+                    g.drawImage(img, xx - dx, yy + (int) (dhy * scale) - dy, width, height, null);
+                    if (lasthi == e) {
+                        g.setColor(new Color(255, 0, 0, 100));
+                        g.drawRect(xx - dx, yy + (int) (dhy * scale) - dy, width, height);
+                    }
+
+                    if (mx > xx - dx && mx <= xx - dx + width && my > yy + (int) (dhy * scale) - dy
+                            && my <= yy + (int) (dhy * scale) - dy + height) {
+                        highlightItem = e;
+                        highlightItemSquare = s;
+                        highlightEntity = null;
+                        highlight = null;
+                    }
+
+                    g.setColor(Color.white);
+
+                    if (e.getName() != null) {
+                        g.drawString(e.getName(), xx - 13, yy - offset + (int) (dhy * scale));
                     }
                 }
             }
             depth++;
         }
 
+        if(highlight != null && highlight != lasthl){
+            path = PathFind.findPath(myPlayer.currentSquare, highlight, s -> 1, 5);
+        }
+        
         g.setColor(Color.white);
         String msg = this.msg;
         if (msg == null)

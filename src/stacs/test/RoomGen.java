@@ -2,6 +2,8 @@ package stacs.test;
 
 import java.util.Random;
 
+import stacs.logic.item.ItemSaber;
+import stacs.logic.item.ItemTreasure;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
 import stacs.logic.room.TerrainType;
@@ -28,6 +30,9 @@ public class RoomGen {
         
         room.squares[0][1].teleport = room2.squares[2][3];
         room.squares[4][5].teleport = room2.squares[2][3];
+        
+        room.squares[2][3].items.add(new ItemTreasure());
+        room.squares[1][4].items.add(new ItemSaber());
         
         world.roomMap.put(1, room);
         world.roomMap.put(2, room2);
