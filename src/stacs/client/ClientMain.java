@@ -25,11 +25,14 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import com.sun.xml.internal.ws.api.ha.HaInfo;
+import com.sun.xml.internal.ws.api.message.Attachment;
 
 import stacs.logic.entity.Entity;
+import stacs.logic.entity.LivingEntity;
 import stacs.logic.entity.PlayerEntity;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
+import stacs.logic.turn.AttackAction;
 import stacs.logic.turn.MoveAction;
 import stacs.net.client.TcpClient;
 import stacs.test.RoomGen;
@@ -39,13 +42,12 @@ public class ClientMain extends Canvas {
     private BufferStrategy buffers = null;
     private Room room = null;
     private Room lastRoom = null;
-    
-    
+
     private int tick = 0;
 
     private Map<Integer, Square> lastPositionMap = new HashMap<>();
     private Map<Integer, Square> currentPositionMap = new HashMap<>();
-    
+
     private double animProgress = 1;
     private double inProg = 0;
     private String msg = null;
@@ -56,34 +58,33 @@ public class ClientMain extends Canvas {
     private boolean needsTurn = false;
 
     private Square highlight = null;
+    private Entity highlightEntity = null;
 
     private PlayerEntity myPlayer;
 
     private double scale = 100;
     private double transx = 500;
     private double transy = 100;
-    
-    
 
     TcpClient client;
 
     public synchronized void updateRoom(Room room, PlayerEntity p, boolean update) {
-        if(this.room == null || this.room.id != room.id){
+        if (this.room == null || this.room.id != room.id) {
             inProg = 0;
         }
-        
+
         Map<Integer, Square> temp = lastPositionMap;
         lastPositionMap = currentPositionMap;
         currentPositionMap = temp;
         temp.clear();
-        
+
         lastRoom = this.room;
         this.room = room;
         this.myPlayer = p;
         animProgress = 0;
         msg = null;
-        
-        if(update)
+
+        if (update)
             needsTurn = true;
     }
 
@@ -115,30 +116,37 @@ public class ClientMain extends Canvas {
             @Override
             public void mouseClicked(MouseEvent e) {
                 turn: if (needsTurn) {
-                    int dx = myPlayer.currentSquare.x - highlight.x;
-                    int dy = myPlayer.currentSquare.y - highlight.y;
+                    if (highlight != null) {
+                        // int dx = myPlayer.currentSquare.x - highlight.x;
+                        // int dy = myPlayer.currentSquare.y - highlight.y;
 
-//                    if (Math.abs(dx) + Math.abs(dy) > 1) {
-//                        msg = "cannot move there";
-//                        break turn;
-//                    }
+                        // if (Math.abs(dx) + Math.abs(dy) > 1) {
+                        // msg = "cannot move there";
+                        // break turn;
+                        // }
 
-                    
-                    boolean teleport = false;
-                    Square dest = highlight;
-                    Square t = highlight.teleport;
-                    if (t != null) {
-                        int reply = JOptionPane.showConfirmDialog(null, "Take the door/telporter?", "Travel", JOptionPane.YES_NO_OPTION);
-                        if (reply == JOptionPane.YES_OPTION) {
-                            teleport = true;
-                            dest = t;
+                        boolean teleport = false;
+                        Square dest = highlight;
+                        Square t = highlight.teleport;
+                        if (t != null) {
+                            int reply = JOptionPane.showConfirmDialog(null, "Take the door/telporter?", "Travel",
+                                    JOptionPane.YES_NO_OPTION);
+                            if (reply == JOptionPane.YES_OPTION) {
+                                teleport = true;
+                                dest = t;
+                            }
                         }
+
+                        MoveAction act = new MoveAction(dest.room.id, dest.x, dest.y, teleport);
+                        client.sendAction(act);
+
+                        needsTurn = false;
+                    } else if (highlightEntity != null && highlightEntity != myPlayer){
+                        AttackAction act = new AttackAction(highlightEntity);
+                        client.sendAction(act);
+
+                        needsTurn = false;
                     }
-
-                    MoveAction act = new MoveAction(dest.room.id, dest.x, dest.y, teleport);
-                    client.sendAction(act);
-
-                    needsTurn = false;
                 }
             }
         });
@@ -211,17 +219,20 @@ public class ClientMain extends Canvas {
         if (room == null)
             return;
 
-        if(inProg > 1)
+        if (inProg > 1)
             inProg = 1;
         inProg += 1.0 / 60 / 3;
-        
-        double inProg = this.inProg * this.inProg * 3 - 2 * this.inProg  * this.inProg  *this.inProg;
-        
-        transx -= (myPlayer.getInterpolatedX(animProgress, scale, transx, lastPositionMap.get(myPlayer.id)) - getWidth() / 2);
-        transy -= (myPlayer.getInterpolatedY(animProgress, scale, transy, lastPositionMap.get(myPlayer.id)) - getHeight() / 2);
+
+        double inProg = this.inProg * this.inProg * 3 - 2 * this.inProg * this.inProg * this.inProg;
+
+        transx -= (myPlayer.getInterpolatedX(animProgress, scale, transx, lastPositionMap.get(myPlayer.id))
+                - getWidth() / 2);
+        transy -= (myPlayer.getInterpolatedY(animProgress, scale, transy, lastPositionMap.get(myPlayer.id))
+                - getHeight() / 2);
         if (animProgress < 1)
             animProgress += 1.0 / 60;
-        double animProgress = this.animProgress *this.animProgress * 3 - 2 * this.animProgress * this.animProgress *this.animProgress;
+        double animProgress = this.animProgress * this.animProgress * 3
+                - 2 * this.animProgress * this.animProgress * this.animProgress;
 
         tick++;
         Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
@@ -229,15 +240,14 @@ public class ClientMain extends Canvas {
         int w = getWidth();
         int h = getHeight();
 
-        if(room.rain)
+        if (room.rain)
             g.setColor(Color.blue);
         else
             g.setColor(Color.black);
         g.fillRect(0, 0, w, h);
 
- 
-
         Square lasthl = highlight;
+        Entity lasthe = highlightEntity;
 
         Random rand = new Random();
         rand.setSeed(2);
@@ -250,12 +260,12 @@ public class ClientMain extends Canvas {
 
                 Square s = room.squares[x][y];
                 double hh = s.getH();
-                
-                
+
                 double dhy = -(10 + rand.nextInt(20)) * (1 - inProg);
-                
+
                 if (drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, s.terrainType.c, mx, my)) {
                     highlight = s;
+                    highlightEntity = null;
                 }
 
                 if (s.teleport != null) {
@@ -302,10 +312,34 @@ public class ClientMain extends Canvas {
                         int xx = (int) e.getInterpolatedX(animProgress, scale, transx, last);
                         int yy = (int) e.getInterpolatedY(animProgress, scale, transy, last);
 
-                        g.drawImage(img, xx, yy + (int) (dhy  * scale), null);
+                        int width = (int) (scale / .8);
+                        int height = (int) (scale / .8);
+                        int dx = (int) (scale / 1.5);
+                        int dy = (int) (scale / 1.2);
+                        
+                        int offset = (int) (scale / 1.2);
+
+                        g.drawImage(img, xx - dx, yy + (int) (dhy * scale) - dy, width, height, null);
+                        if (lasthe == e) {
+                            g.setColor(new Color(255, 0, 0, 100));
+                            g.drawRect(xx - dx, yy + (int) (dhy * scale) - dy, width, height);
+                        }
+
+                        if (mx > xx - dx && mx <= xx - dx + width && my > yy + (int) (dhy * scale) - dy
+                                && my <= yy + (int) (dhy * scale) - dy + height) {
+                            highlightEntity = e;
+                            highlight = null;
+                        }
+
                         g.setColor(Color.white);
+
                         if (e.getDisplayName() != null) {
-                            g.drawString(e.getDisplayName(), xx - 13, yy - 10 + (int) (dhy * scale));
+                            g.drawString(e.getDisplayName(), xx - 13, yy - offset - 20 + (int) (dhy * scale));
+                        }
+
+                        if (e instanceof LivingEntity) {
+                            LivingEntity liv = (LivingEntity) e;
+                            g.drawString(liv.health + "/" + liv.maxHealth, xx - 13, yy - offset - 5+ (int) (dhy * scale));
                         }
                     }
                 }

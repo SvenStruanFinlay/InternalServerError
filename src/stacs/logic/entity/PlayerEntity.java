@@ -17,6 +17,8 @@ public class PlayerEntity extends LivingEntity {
     
     public PlayerEntity(String name) {
         this.name = name;
+        this.maxHealth = 10;
+        this.health = 10;
     }
     
     @Override
@@ -34,14 +36,11 @@ public class PlayerEntity extends LivingEntity {
         return true;
     }
     
-    private static final Image anim1[];
+    private static final Image img;
     
     static{
         try {
-            anim1 = new Image[4];
-            for(int i = 1; i <= 4; i++){
-                anim1[i - 1] = ImageIO.read(PlayerEntity.class.getResourceAsStream("/player" + i + ".png"));
-            }
+            img = ImageIO.read(PlayerEntity.class.getResourceAsStream("/player.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -50,6 +49,6 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public Image getSprite(int tick) {
         // TODO Auto-generated method stub
-        return anim1[(tick / 10) % 4];
+        return img;
     }
 }

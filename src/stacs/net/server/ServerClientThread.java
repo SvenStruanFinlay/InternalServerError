@@ -15,9 +15,9 @@ public class ServerClientThread implements Runnable {
 
     private Socket clientSocket;
     public PlayerEntity player = null;
-    
+
     public TcpServer server;
-    
+
     ObjectOutputStream os = null;
     ObjectInputStream is = null;
 
@@ -25,33 +25,36 @@ public class ServerClientThread implements Runnable {
         this.server = server;
         this.clientSocket = clientSocket;
     }
-    
 
     public void doUpdate(Room room, boolean turn) throws IOException {
         os.reset();
         os.writeObject(new UpdateRoomMessage(room, player, turn));
         os.flush();
     }
-    
+
     @Override
     public void run() {
         try {
-            os = new ObjectOutputStream(clientSocket.getOutputStream());
-            is = new ObjectInputStream(clientSocket.getInputStream());
-            
-            while (!clientSocket.isClosed()) {
-                Object obj = is.readObject();
-                Message msg = (Message) obj;
-                System.out.println("Got message " + obj.getClass().getSimpleName());
-                msg.serverRecieved(this);
-            }
+            try {
+                os = new ObjectOutputStream(clientSocket.getOutputStream());
+                is = new ObjectInputStream(clientSocket.getInputStream());
 
-            os.close();
-            clientSocket.close();
+                while (!clientSocket.isClosed()) {
+                    Object obj = is.readObject();
+                    Message msg = (Message) obj;
+                    System.out.println("Got message " + obj.getClass().getSimpleName());
+                    msg.serverRecieved(this);
+                }
+
+                os.close();
+                clientSocket.close();
+            } catch (IOException e) {
+                if(player != null)
+                    server.world.remove(player);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 }
-
