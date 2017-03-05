@@ -36,48 +36,46 @@ public class EnemyEntity extends LivingEntity {
         Square targetSq = null;
         for (int x = 0; x < this.currentSquare.room.w; x++) {
             for (int y = 0; y < this.currentSquare.room.h; y++) {
-                
-                for(Entity e : this.currentSquare.room.squares[x][y].entities){
-                    if(e instanceof PlayerEntity){
+
+                for (Entity e : this.currentSquare.room.squares[x][y].entities) {
+                    if (e instanceof PlayerEntity) {
                         LivingEntity p = (LivingEntity) e;
-                        
-                        if(p == target || found == null){
+
+                        if (p == target || found == null) {
                             found = p;
                             targetSq = this.currentSquare.room.squares[x][y];
                         }
                     }
                 }
-                
+
             }
         }
-        
+
         target = found;
-        
-        if(target == null){
+
+        if (target == null) {
             world.nextActionMap.put(this, new NullAction());
             return;
         }
-        
+
         List<Square> path = PathFind.findPath(this.currentSquare, targetSq, s -> {
-                if(s.terrainType == TerrainType.water)
-                    return s.room.freeze ? 1 : 10000;
-                else
-                    return 1;
-            }, 1000);
-        
-        
-        if(path != null){
+            if (!this.canNavigate(s))
+                return 10000;
+            return 1;
+        }, 1000);
+
+        if (path != null) {
             int x = Math.min(path.size() - 2, 4);
-            if(x > 0){
+            if (x > 0) {
                 Square moveSq = path.get(x);
                 world.nextActionMap.put(this, new MoveAction(moveSq, false));
                 return;
-            } else  {
+            } else {
                 world.nextActionMap.put(this, new AttackAction(target));
                 return;
             }
         }
-        
+
         world.nextActionMap.put(this, new NullAction());
     }
 

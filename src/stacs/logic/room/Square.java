@@ -20,7 +20,7 @@ public class Square implements Serializable {
     public Square teleport = null;
     
     public int height;
-    public final TerrainType terrainType;
+    public TerrainType terrainType;
     public final Room room;
     
     public double getH() {
@@ -29,8 +29,12 @@ public class Square implements Serializable {
                 return 1;
             else 
                 return 0.1;
+        
+        if(terrainType == TerrainType.wall || terrainType == TerrainType.trapWall)
+            return 1.4;
+        
         double hh = 1.0 * height / 10;
-        return hh / 1.5;
+        return hh / 5 + .5;
     }
     
     public Square(int x, int y, int height, TerrainType terrainType, Room room) {
@@ -46,5 +50,9 @@ public class Square implements Serializable {
         if(terrainType == TerrainType.water && room.freeze)
             return Color.white;
         return terrainType.c;
+    }
+
+    public void stepOn() {
+        
     }
 }

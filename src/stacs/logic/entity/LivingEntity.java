@@ -5,6 +5,8 @@ import java.util.List;
 
 import stacs.logic.item.Item;
 import stacs.logic.item.ItemSaber;
+import stacs.logic.room.Square;
+import stacs.logic.room.TerrainType;
 import stacs.server.ServerWorld;
 
 public abstract class LivingEntity extends Entity {
@@ -17,6 +19,10 @@ public abstract class LivingEntity extends Entity {
         if(health <= 0){
             die();
         }
+    }
+    
+    public boolean canNavigate(Square square){
+        return square.terrainType != TerrainType.trapWall && square.terrainType != TerrainType.wall && (square.terrainType != TerrainType.water || currentSquare.room.freeze);
     }
     
     public void die() {

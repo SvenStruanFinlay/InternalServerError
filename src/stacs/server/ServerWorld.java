@@ -23,7 +23,7 @@ public class ServerWorld {
     public HashSet<Entity> toGetTurnEntities = new HashSet<>();
 
     public boolean turnStarted = false;
-    
+
     public synchronized void startTurn() {
         for (Entity entry : allEntities.values()) {
             entry.startNextTurn(this);
@@ -42,7 +42,7 @@ public class ServerWorld {
             }
         }
     }
-    
+
     public synchronized void sendMessage(ChatMessage message) {
         for (Entity e : allEntities.values()) {
             if (e instanceof PlayerEntity) {
@@ -60,32 +60,37 @@ public class ServerWorld {
     }
 
     public synchronized void runCommand(String command) {
-        if (command.equals("rain")) {
-            for (Room room : roomMap.values()) {
-                room.rain = true;
-            }
-            update();
-        }
-
         if (command.equals("freeze")) {
             for (Room room : roomMap.values()) {
                 room.freeze = true;
             }
             update();
         }
-        
+
         if (command.equals("thaw")) {
             for (Room room : roomMap.values()) {
                 room.freeze = false;
             }
             update();
         }
+
+        if (command.equals("lock")) {
+        }
+
+        if (command.equals("darkness")) {
+        }
+
+        if (command.equals("confuse")) {
+        }
+        
+        if (command.equals("swapdr")) {
+        }
     }
 
     public synchronized void attemptTurn() {
         if (!turnStarted)
             startTurn();
-        
+
         if (nextActionMap.keySet().containsAll(toGetTurnEntities)) {
             // ready to do next turn
 
@@ -98,15 +103,17 @@ public class ServerWorld {
         }
     }
 
+    public synchronized void addEntity(Entity e, Square s) {
+        allEntities.put(e.id, e);
+        s.entities.add(e);
+        e.currentSquare = s;
+    }
+
     public synchronized void spawnPlayer(LivingEntity e) {
         allEntities.put(e.id, e);
-        Room rm = roomMap.get("room");/////////////////////////////////////////////////////changed to always spawn at start
+        Room rm = roomMap.get("roomMaze");
 
-        Random rand = new Random();
-        int x = rand.nextInt(rm.w);
-        int y = rand.nextInt(rm.h);
-
-        Square s = rm.squares[x][y];
+        Square s = rm.squares[0][0];
         s.entities.add(e);
         e.currentSquare = s;
         update();

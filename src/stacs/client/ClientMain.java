@@ -58,6 +58,8 @@ public class ClientMain extends Canvas {
 
     private Map<Integer, Square> lastPositionMap = new HashMap<>();
     private Map<Integer, Square> currentPositionMap = new HashMap<>();
+    
+    private boolean darkness = false;
 
     private double animProgress = 1;
     private double inProg = 0;
@@ -258,6 +260,18 @@ public class ClientMain extends Canvas {
         if (room == null)
             return;
 
+        Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
+
+        int h = getHeight();
+        int w = getWidth();
+
+        if (myPlayer == null) {
+            g.setColor(Color.black);
+            g.fillRect(0, 0, w, h);
+            g.setColor(Color.white);
+            g.drawString("you lose", 100, 100);
+        }
+
         if (inProg > 1)
             inProg = 1;
         inProg += 1.0 / 60 / 2;
@@ -274,10 +288,6 @@ public class ClientMain extends Canvas {
                 - 2 * this.animProgress * this.animProgress * this.animProgress;
 
         tick++;
-        Graphics2D g = (Graphics2D) buffers.getDrawGraphics();
-
-        int w = getWidth();
-        int h = getHeight();
 
         if (room.rain)
             g.setColor(Color.blue);
@@ -321,12 +331,12 @@ public class ClientMain extends Canvas {
 
                     if (x == 0) {
                         dx = 0.2;
-                    } else if (x == room.w -1) {
+                    } else if (x == room.w - 1) {
                         dx = 0.2;
                         xx += 1 - dx;
                     } else if (y == 0) {
                         dy = 0.2;
-                    } else if (y == room.h- 1) {
+                    } else if (y == room.h - 1) {
                         dy = 0.2;
                         yy += 1 - dy;
                     } else {
@@ -346,21 +356,7 @@ public class ClientMain extends Canvas {
                     Color high = new Color(0, 255, 0, 100);
                     drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, high, -1, -1);
                 }
-            }
-            depth++;
-        }
-
-        depth = 0;
-        while (depth <= room.w + room.h - 2) {
-            for (int x = Math.min(depth, room.w - 1); x >= 0; x--) {
-                int y = depth - x;
-                if (y >= room.h)
-                    break;
-
-                Square s = room.squares[x][y];
-                double hh = s.getH();
-                double dhy = -(10 + rand.nextInt(20)) * (1 - inProg);
-
+                
                 for (Entity e : s.entities) {
                     currentPositionMap.put(e.id, e.currentSquare);
                     Square last = lastPositionMap.get(e.id);
@@ -442,10 +438,9 @@ public class ClientMain extends Canvas {
 
         if (highlight != null && highlight != lasthl) {
             path = PathFind.findPath(myPlayer.currentSquare, highlight, s -> {
-                if(s.terrainType == TerrainType.water)
-                    return s.room.freeze ? 1 : 10000;
-                else
-                    return 1;
+                if (!myPlayer.canNavigate(s))
+                    return 10000;
+                return 1;
             }, 5);
         }
 
@@ -454,7 +449,7 @@ public class ClientMain extends Canvas {
         if (msg == null)
             msg = needsTurn ? "Make your move" : "waiting on others";
         g.drawString(msg, 100, 100);
-        
+
         g.drawString(room.id, 100, 50);
         buffers.show();
     }

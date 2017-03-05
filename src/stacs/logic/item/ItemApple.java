@@ -5,14 +5,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-public class ItemTreasure extends Item {
-    private static final long serialVersionUID = -8363930842135477253L;
-    
+public class ItemApple extends Item {
+    private static final long serialVersionUID = 7901168897705466332L;
+
     private static Image img;
     
     static{
         try {
-            img = ImageIO.read(ItemTreasure.class.getResourceAsStream("/cup.png"));
+            img = ImageIO.read(ItemTreasure.class.getResourceAsStream("/apple.png"));
         } catch (IOException e) {
         }
     }
@@ -24,7 +24,7 @@ public class ItemTreasure extends Item {
 
     @Override
     public String getName() {
-        return "treasure";
+        return "apple";
     }
 
 }
