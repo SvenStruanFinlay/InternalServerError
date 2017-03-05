@@ -2,6 +2,8 @@ package stacs.test;
 
 import java.util.Random;
 
+import stacs.logic.entity.EnemyEntity;
+import stacs.logic.entity.Entity;
 import stacs.logic.item.ItemSaber;
 import stacs.logic.item.ItemTreasure;
 import stacs.logic.room.Room;
@@ -12,19 +14,19 @@ import stacs.server.ServerWorld;
 public class RoomGen {
     public static void generateWorld(ServerWorld world) {
 
-        Room room = new Room(1, null,  7,6);
-        Room room2 = new Room(2, null,  5,4);
-        Room room3 = new Room(3, null, 4, 4);
-        Room room4 = new Room(4, null,  4,9);
-        Room roomIce = new Room(5, null, 13,12);
-        Room roomIce2 = new Room(6, null, 12,10);
-        Room roomBoss1 = new Room(7, null, 9,5);
-        Room roomI1 = new Room(8, null, 8, 7);
-        Room roomI2 = new Room(9, null, 5, 5);
-        Room roomI3 = new Room(10, null, 5, 6);
-        Room roomBoss2 = new Room(11, null, 3, 2);
-        Room roomMaze = new Room(12, null, 10, 7);
-        Room roomBoss3 = new Room(13, null, 7, 3);
+        Room room = new Room("room", world,  7,6);
+        Room room2 = new Room("room2", world,  5,4);
+        Room room3 = new Room("room3", world, 4, 4);
+        Room room4 = new Room("room4", world,  4,9);
+        Room roomIce = new Room("roomIce", world, 13,12);
+        Room roomIce2 = new Room("roomIce2", world, 12,10);
+        Room roomBoss1 = new Room("roomBoss1", world, 9,5);
+        Room roomI1 = new Room("roomI1", world, 8, 7);
+        Room roomI2 = new Room("roomI2", world, 5, 5);
+        Room roomI3 = new Room("roomI3", world, 5, 6);
+        Room roomBoss2 = new Room("roomBoss2", world, 3, 2);
+        Room roomMaze = new Room("roomMaze", world, 10, 7);
+        Room roomBoss3 = new Room("roomBoss3", world, 7, 3);
 
 
         world.roomMap.put("room", room);
@@ -46,7 +48,7 @@ public class RoomGen {
 
             System.out.println("\n" + r.id +"\n");
 
-            if (r.id != 5 && r.id != 6) {
+            if (!r.id.contains("Ice")) {
 
                 for (int x = 0; x < r.w; x++) {
                     System.out.println("x: "+x + "\n ..." + r.w);
@@ -65,6 +67,11 @@ public class RoomGen {
             }
         }
 
+        Entity e = new EnemyEntity("");
+        room.squares[1][1].entities.add(e);
+        world.allEntities.put(e.id, e);
+        e.currentSquare = room.squares[1][1]; 
+        
         room.squares[0][2].teleport = room2.squares[4][2];
         room.squares[3][0].teleport = room3.squares[1][3];
         room2.squares[0][1].teleport = roomIce.squares[12][4];
@@ -94,5 +101,9 @@ public class RoomGen {
         roomIce2.squares[6][0].teleport = roomI2.squares[2][4];
         roomI2.squares[2][4].teleport = roomIce2.squares[5][0];
         roomBoss2.squares[0][1].teleport = roomIce2.squares[11][3];
+        
+        
+        room2.squares[4][2].teleport = room.squares[0][2];
+        room3.squares[0][2].teleport = room2.squares[3][3];
     }
 }

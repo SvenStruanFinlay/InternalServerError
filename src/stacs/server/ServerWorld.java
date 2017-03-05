@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import stacs.logic.entity.Entity;
+import stacs.logic.entity.LivingEntity;
 import stacs.logic.entity.PlayerEntity;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
@@ -97,7 +98,7 @@ public class ServerWorld {
         }
     }
 
-    public synchronized void spawnPlayer(PlayerEntity e) {
+    public synchronized void spawnPlayer(LivingEntity e) {
         allEntities.put(e.id, e);
         Room rm = roomMap.get("room");/////////////////////////////////////////////////////changed to always spawn at start
 

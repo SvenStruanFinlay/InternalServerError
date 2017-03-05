@@ -4,7 +4,6 @@ import java.util.Random;
 
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.LivingEntity;
-import stacs.logic.entity.PlayerEntity;
 import stacs.net.message.ChatMessage;
 import stacs.server.ServerWorld;
 
@@ -12,7 +11,7 @@ public class AttackAction extends NextTurnAction {
     private static final long serialVersionUID = -1116119616467244837L;
 
     private int toAttackId;
-    private int rm;
+    private String rm;
     private int x;
     private int y;
     
@@ -27,9 +26,9 @@ public class AttackAction extends NextTurnAction {
     public void execute(Entity e, ServerWorld world) {
         Random rand = new Random();
         Entity a = world.allEntities.get(toAttackId);
-        PlayerEntity p = (PlayerEntity) e;
+        LivingEntity p = (LivingEntity) e;
         
-        if(rm == a.currentSquare.room.id && x == a.currentSquare.x && y == a.currentSquare.y){
+//        if(rm.equals(a.currentSquare.room.id) && x == a.currentSquare.x && y == a.currentSquare.y){
             if(a instanceof LivingEntity){
                 LivingEntity liv = (LivingEntity) a;
                 int damage = rand.nextInt(p.getAttachStrength()) + 1;
@@ -37,7 +36,7 @@ public class AttackAction extends NextTurnAction {
                 
                 world.sendMessage(new ChatMessage(p.getDisplayName() + " attacks " + a.getDisplayName() + " (" + damage +"hp)"));
             }
-        }
+//        }
     }
 
 }

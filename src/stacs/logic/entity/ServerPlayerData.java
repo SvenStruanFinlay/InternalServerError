@@ -8,9 +8,9 @@ import stacs.server.ServerWorld;
 
 public class ServerPlayerData {
     public ServerClientThread thread;
-    public PlayerEntity player;
+    public LivingEntity player;
 
-    public ServerPlayerData(ServerClientThread thread, PlayerEntity ent) {
+    public ServerPlayerData(ServerClientThread thread, LivingEntity ent) {
         this.thread = thread;
         this.player = ent;
     }

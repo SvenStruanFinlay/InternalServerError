@@ -12,7 +12,7 @@ import stacs.server.ServerWorld;
 public class PickupItemAction extends NextTurnAction {
     private static final long serialVersionUID = -7625125411240861042L;
 
-    int rm;
+    String rm;
     int x;
     int y;
     int itemid;

@@ -35,7 +35,6 @@ import com.sun.xml.internal.ws.api.message.Attachment;
 
 import stacs.logic.entity.Entity;
 import stacs.logic.entity.LivingEntity;
-import stacs.logic.entity.PlayerEntity;
 import stacs.logic.item.Item;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
@@ -79,7 +78,7 @@ public class ClientMain extends Canvas {
 
     private List<Square> path = null;
 
-    private PlayerEntity myPlayer;
+    private LivingEntity myPlayer;
 
     private double scale = 100;
     private double transx = 500;
@@ -91,8 +90,8 @@ public class ClientMain extends Canvas {
         area.append(message + "\n");
     }
 
-    public synchronized void updateRoom(Room room, PlayerEntity p, boolean update) {
-        if (this.room == null || this.room.id != room.id) {
+    public synchronized void updateRoom(Room room, LivingEntity p, boolean update) {
+        if (this.room == null || !this.room.id.equals(room.id)) {
             inProg = 0;
         }
 
@@ -152,7 +151,7 @@ public class ClientMain extends Canvas {
                             }
                         }
 
-                        MoveAction act = new MoveAction(dest.room.id, dest.x, dest.y, teleport);
+                        MoveAction act = new MoveAction(dest, teleport);
                         client.sendAction(act);
 
                         needsTurn = false;
@@ -261,7 +260,7 @@ public class ClientMain extends Canvas {
 
         if (inProg > 1)
             inProg = 1;
-        inProg += 1.0 / 60 / 3;
+        inProg += 1.0 / 60 / 2;
 
         double inProg = this.inProg * this.inProg * 3 - 2 * this.inProg * this.inProg * this.inProg;
 
@@ -322,12 +321,12 @@ public class ClientMain extends Canvas {
 
                     if (x == 0) {
                         dx = 0.2;
-                    } else if (x == w) {
+                    } else if (x == room.w -1) {
                         dx = 0.2;
                         xx += 1 - dx;
                     } else if (y == 0) {
                         dy = 0.2;
-                    } else if (y == h) {
+                    } else if (y == room.h- 1) {
                         dy = 0.2;
                         yy += 1 - dy;
                     } else {
@@ -455,6 +454,8 @@ public class ClientMain extends Canvas {
         if (msg == null)
             msg = needsTurn ? "Make your move" : "waiting on others";
         g.drawString(msg, 100, 100);
+        
+        g.drawString(room.id, 100, 50);
         buffers.show();
     }
 

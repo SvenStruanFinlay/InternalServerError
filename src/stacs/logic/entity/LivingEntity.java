@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import stacs.logic.item.Item;
+import stacs.logic.item.ItemSaber;
 import stacs.server.ServerWorld;
 
 public abstract class LivingEntity extends Entity {
@@ -24,4 +25,12 @@ public abstract class LivingEntity extends Entity {
     
     @Override
     public abstract void startNextTurn(ServerWorld world);
+
+    public int getAttachStrength() {
+        for(Item it : inventory){
+            if(it instanceof ItemSaber)
+                return 2;
+        }
+        return 1;
+    }
 }

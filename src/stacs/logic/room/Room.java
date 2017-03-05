@@ -11,13 +11,13 @@ public class Room implements Serializable {
     public boolean rain = false;
     public boolean freeze = false;
     
-    public final int id;
+    public final String id;
     public final transient ServerWorld world;
     public final int w;
     public final int h;
     public Square[][] squares;
     
-    public Room(int id, ServerWorld world, int w, int h) {
+    public Room(String id, ServerWorld world, int w, int h) {
         this.id = id;
         this.world = world;
         this.w = w;
