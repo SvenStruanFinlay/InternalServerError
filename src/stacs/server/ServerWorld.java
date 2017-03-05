@@ -15,7 +15,7 @@ import stacs.logic.turn.NextTurnAction;
 import stacs.net.message.ChatMessage;
 
 public class ServerWorld {
-    public final Map<Integer, Room> roomMap = new HashMap<>();
+    public final Map<String, Room> roomMap = new HashMap<>();
     public final Map<Entity, NextTurnAction> nextActionMap = new ConcurrentHashMap();
 
     public HashMap<Integer, Entity> allEntities = new HashMap<>();
@@ -99,7 +99,7 @@ public class ServerWorld {
 
     public synchronized void spawnPlayer(PlayerEntity e) {
         allEntities.put(e.id, e);
-        Room rm = roomMap.values().iterator().next();
+        Room rm = roomMap.get("room");/////////////////////////////////////////////////////changed to always spawn at start
 
         Random rand = new Random();
         int x = rand.nextInt(rm.w);
