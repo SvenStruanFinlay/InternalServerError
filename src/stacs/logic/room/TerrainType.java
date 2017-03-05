@@ -4,7 +4,8 @@ import java.awt.Color;
 
 public enum TerrainType {
     dirt(Color.decode("#8B4513")),
-    stone(Color.gray);
+    stone(Color.gray),
+    ice(Color.WHITE);
     
     public final Color c;
     
