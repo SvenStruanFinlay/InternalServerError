@@ -9,6 +9,7 @@ public class Room implements Serializable {
     private static final long serialVersionUID = 7837788358931915072L;
     
     public boolean rain = false;
+    public boolean freeze = false;
     
     public final int id;
     public final transient ServerWorld world;

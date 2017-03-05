@@ -1,5 +1,6 @@
 package stacs.logic.room;
 
+import java.awt.Color;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,11 @@ public class Square implements Serializable {
     public final Room room;
     
     public double getH() {
+        if(terrainType == TerrainType.water)
+            if(room.freeze)
+                return 1;
+            else 
+                return 0.1;
         double hh = 1.0 * height / 10;
         return hh / 1.5;
     }
@@ -34,5 +40,11 @@ public class Square implements Serializable {
         this.height = height;
         this.terrainType = terrainType;
         this.room = room;
+    }
+
+    public Color getCol() {
+        if(terrainType == TerrainType.water && room.freeze)
+            return Color.white;
+        return terrainType.c;
     }
 }

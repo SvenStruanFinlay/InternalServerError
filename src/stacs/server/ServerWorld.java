@@ -66,9 +66,16 @@ public class ServerWorld {
             update();
         }
 
+        if (command.equals("freeze")) {
+            for (Room room : roomMap.values()) {
+                room.freeze = true;
+            }
+            update();
+        }
+        
         if (command.equals("thaw")) {
             for (Room room : roomMap.values()) {
-                room.rain = false;
+                room.freeze = false;
             }
             update();
         }

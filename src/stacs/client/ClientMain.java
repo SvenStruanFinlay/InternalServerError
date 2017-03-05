@@ -39,6 +39,7 @@ import stacs.logic.entity.PlayerEntity;
 import stacs.logic.item.Item;
 import stacs.logic.room.Room;
 import stacs.logic.room.Square;
+import stacs.logic.room.TerrainType;
 import stacs.logic.turn.AttackAction;
 import stacs.logic.turn.MoveAction;
 import stacs.logic.turn.PickupItemAction;
@@ -68,14 +69,14 @@ public class ClientMain extends Canvas {
 
     private JTextArea area;
     private JTextField chatIn;
-    
+
     private boolean needsTurn = false;
 
     private Square highlight = null;
     private Entity highlightEntity = null;
     private Item highlightItem = null;
     private Square highlightItemSquare = null;
-    
+
     private List<Square> path = null;
 
     private PlayerEntity myPlayer;
@@ -85,8 +86,8 @@ public class ClientMain extends Canvas {
     private double transy = 100;
 
     TcpClient client;
-    
-    public void addMessage(String message){
+
+    public void addMessage(String message) {
         area.append(message + "\n");
     }
 
@@ -158,18 +159,18 @@ public class ClientMain extends Canvas {
                     } else if (highlightEntity != null && highlightEntity != myPlayer) {
                         int dist = Math.abs(myPlayer.currentSquare.x - highlightEntity.currentSquare.x);
                         dist += Math.abs(myPlayer.currentSquare.y - highlightEntity.currentSquare.y);
-                        if(dist > 1)
+                        if (dist > 1)
                             return;
-                        
+
                         AttackAction act = new AttackAction(highlightEntity);
                         client.sendAction(act);
                         needsTurn = false;
-                    } else if(highlightItem != null) {
+                    } else if (highlightItem != null) {
                         int dist = Math.abs(myPlayer.currentSquare.x - highlightItemSquare.x);
                         dist += Math.abs(myPlayer.currentSquare.y - highlightItemSquare.y);
-                        if(dist > 1)
+                        if (dist > 1)
                             return;
-                            
+
                         PickupItemAction pick = new PickupItemAction(highlightItemSquare, highlightItem);
                         client.sendAction(pick);
                         needsTurn = false;
@@ -190,7 +191,7 @@ public class ClientMain extends Canvas {
         this.setPreferredSize(new Dimension(1080, 720));
 
         JFrame window = new JFrame("Game: " + n);
-        
+
         JPanel chatpane = new JPanel();
         chatpane.setLayout(new BorderLayout());
         area = new JTextArea();
@@ -202,9 +203,7 @@ public class ClientMain extends Canvas {
             chatIn.setText("");
         });
         chatpane.add(chatIn, BorderLayout.SOUTH);
-        
-        
-        
+
         JPanel pane = new JPanel();
         pane.setLayout(new BorderLayout());
         pane.add(this, BorderLayout.CENTER);
@@ -305,7 +304,7 @@ public class ClientMain extends Canvas {
 
                 double dhy = -(10 + rand.nextInt(20)) * (1 - inProg);
 
-                if (drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, s.terrainType.c, mx, my)) {
+                if (drawCube(x, 1 - hh + dhy, y, 1, hh, 1, g, s.getCol(), mx, my)) {
                     highlight = s;
                     highlightEntity = null;
                     highlightItem = null;
@@ -351,7 +350,7 @@ public class ClientMain extends Canvas {
             }
             depth++;
         }
-        
+
         depth = 0;
         while (depth <= room.w + room.h - 2) {
             for (int x = Math.min(depth, room.w - 1); x >= 0; x--) {
@@ -442,10 +441,15 @@ public class ClientMain extends Canvas {
             depth++;
         }
 
-        if(highlight != null && highlight != lasthl){
-            path = PathFind.findPath(myPlayer.currentSquare, highlight, s -> 1, 5);
+        if (highlight != null && highlight != lasthl) {
+            path = PathFind.findPath(myPlayer.currentSquare, highlight, s -> {
+                if(s.terrainType == TerrainType.water)
+                    return s.room.freeze ? 1 : 10000;
+                else
+                    return 1;
+            }, 5);
         }
-        
+
         g.setColor(Color.white);
         String msg = this.msg;
         if (msg == null)
